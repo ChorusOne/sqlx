@@ -93,6 +93,9 @@ runtime-tokio-rustls = [
     "_rt-tokio"
 ]
 
+# openssl
+openssl-native = [ "openssl" ]
+
 # for conditional compilation
 _rt-async-std = []
 _rt-tokio = ["tokio-stream"]
