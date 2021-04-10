@@ -112,6 +112,8 @@ impl PgConnectOptions {
     ///  * `PGPASSWORD`
     ///  * `PGDATABASE`
     ///  * `PGSSLROOTCERT`
+    ///  * `PGSSLCERT`
+    ///  * `PGSSLKEY`
     ///  * `PGSSLMODE`
     ///  * `PGAPPNAME`
     ///
