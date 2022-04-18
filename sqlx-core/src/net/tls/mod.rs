@@ -124,13 +124,7 @@ async fn configure_tls_connector(
     client_cert_path: Option<&CertificateInput>,
     client_key_path: Option<&CertificateInput>,
 ) -> Result<sqlx_rt::TlsConnector, Error> {
-    #[cfg(feature = "openssl-native")]
-    use openssl::{pkcs12::Pkcs12, pkey::PKey, x509::X509};
-    #[cfg(feature = "openssl-native")]
-    use sqlx_rt::native_tls::Identity;
-    use sqlx_rt::native_tls::{Certificate, TlsConnector};
-    #[cfg(feature = "openssl-native")]
-    const PASSWORD: &str = "temp-pkcs12";
+    use sqlx_rt::native_tls::{Certificate, Identity, TlsConnector};
 
     let mut builder = TlsConnector::builder();
     builder
@@ -143,26 +137,14 @@ async fn configure_tls_connector(
             let cert = Certificate::from_pem(&data)?;
 
             builder.add_root_certificate(cert);
+        }
 
-            #[cfg(feature = "openssl-native")]
-            if let (Some(cert), Some(key)) = (client_cert_path, client_key_path) {
-                let cert_data = cert.data().await?;
-                let key_data = key.data().await?;
-                if let (Ok(pkey), Ok(cert)) = (
-                    PKey::private_key_from_pem(&key_data),
-                    X509::from_pem(&cert_data),
-                ) {
-                    if let Ok(pkcs) =
-                        Pkcs12::builder().build(PASSWORD, PASSWORD, pkey.as_ref(), cert.as_ref())
-                    {
-                        if let Ok(der) = pkcs.to_der() {
-                            let identity = Identity::from_pkcs12(&der, PASSWORD)?;
-
-                            builder.identity(identity);
-                        }
-                    }
-                }
-            }
+        // authentication using user's key-file and its associated certificate
+        if let (Some(cert_path), Some(key_path)) = (client_cert_path, client_key_path) {
+            let cert_path = cert_path.data().await?;
+            let key_path = key_path.data().await?;
+            let identity = Identity::from_pkcs8(&cert_path, &key_path)?;
+            builder.identity(identity);
         }
     }
 
