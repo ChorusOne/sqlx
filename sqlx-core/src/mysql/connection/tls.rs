@@ -53,8 +53,8 @@ async fn upgrade(stream: &mut MySqlStream, options: &MySqlConnectOptions) -> Res
             accept_invalid_certs,
             accept_invalid_host_names,
             options.ssl_ca.as_ref(),
-            None,
-            None,
+            options.ssl_client_cert.as_ref(),
+            options.ssl_client_key.as_ref(),
         )
         .await?;
 
